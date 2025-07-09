@@ -3,20 +3,16 @@ import numpy as np
 import random
 
 import torch
-from torchvision import transforms
 from torch.utils.data import DataLoader
 
-from tracking import Experiment
-import custom_logging as cl
-import model as ml
-from dataset import create_datasets
-from stage import Stage
-from evaluation import create_evaluator
-from runner import create_runner
-
-
-from config import Config
-
+from src.tracking import Experiment
+import src.custom_logging as cl
+import src.model as ml
+from src.dataset import create_datasets
+from src.stage import Stage
+from src.evaluation import create_evaluator
+from src.runner import create_runner
+from src.config import Config
 
 def main(cfg: Config):
 
@@ -77,7 +73,9 @@ if __name__ == "__main__":
 
         batch_size = 8,
         epochs = 100,
-        samples = 50000,
+        samples = 1000,
+        loss = 'MSE',
+        metrics = ['MSE', 'PSNR', 'SSIM'],
 
         model_cls=ml.CAE,
         model_kwargs={"latent_channels": 12, "hidden_channels": [64, 128]},
@@ -92,12 +90,10 @@ if __name__ == "__main__":
         logger_kwargs={'log_dir' : Path('output/test')},
 
         dataset_factory= create_datasets,
-        dataset_kwargs= {"data_path": Path('data/CIFAR10/'), 
-                        "feature_transform": transforms.ToTensor(),
-                        "target_transform": transforms.ToTensor()}
+        dataset_kwargs= {"data_path": Path('data/CIFAR10/')}
     )
 
-    cfg.loss = 'MSE'
+
 
     main(cfg)
 
