@@ -1,6 +1,4 @@
 from pathlib import Path
-import numpy as np
-import random
 
 import torch
 from torch.utils.data import DataLoader
@@ -13,8 +11,10 @@ from src.stage import Stage
 from src.evaluation import create_evaluator
 from src.runner import create_runner
 from src.config import Config
+from src.training_utils import set_random_state, EarlyStopping
 
-def main(cfg: Config):
+
+def main(cfg: Config, early_stopper):
 
     set_random_state(cfg.random_state)
     torch.set_num_threads(cfg.threads)
@@ -49,28 +49,26 @@ def main(cfg: Config):
             train_metrics = epoch_runner(train_loader)
             experiment.add_metrics(tag=stage.name, step=epoch, metrics=train_metrics)
 
-        scheduler.step()
+        if scheduler:
+            scheduler.step()
 
         with Stage.VAL(model) as stage:
             val_metrics = epoch_runner(val_loader)
             experiment.add_metrics(tag=stage.name, step=epoch, metrics=val_metrics)
 
+        val_loss = val_metrics.get('MSE')
+        if val_loss is not None:
+            early_stopper(val_loss)
+            if early_stopper.early_stop:
+                print(f"Early stopping triggered at epoch {epoch}")
+                break
+
     return experiment
 
 
-def set_random_state(seed=None):
-    """ Sets the global random state. """
-    if not isinstance(seed, int):
-        seed = random.randint(0, 2**32 - 1)
-    np.random.seed(seed)
-    random.seed(seed)
-
-
 if __name__ == "__main__":
-    # seems necessary to work on HPC clusters having their own MKL libraries
-    # torch.multiprocessing.set_start_method("spawn")
-    cfg = Config(
 
+    cfg = Config(
         batch_size = 8,
         epochs = 100,
         samples = 1000,
@@ -90,10 +88,11 @@ if __name__ == "__main__":
         logger_kwargs={'log_dir' : Path('output/test')},
 
         dataset_factory= create_datasets,
-        dataset_kwargs= {"data_path": Path('data/CIFAR10/')}
+        dataset_kwargs= {"data_path": Path('data/CIFAR10/')},
+
+        early_stopper_cls=EarlyStopping,
+        early_stopper_kwargs= {'patience': 5, 'delta': 1e-5}
     )
-
-
 
     main(cfg)
 

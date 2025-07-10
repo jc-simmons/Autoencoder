@@ -4,7 +4,7 @@ from pathlib import Path
 
 @dataclass
 class Config:
-
+    """Configuration container for training pipeline components, hyperparameters, and runtime options."""
     batch_size: int
     epochs: int
     samples: int
@@ -20,15 +20,17 @@ class Config:
     model_kwargs: Dict[str, Any] = field(default_factory=dict)
     optimizer_kwargs: Dict[str, Any] = field(default_factory=dict)
     logger_kwargs: Dict[str, Any] = field(default_factory=dict)
+
     scheduler_cls: Optional[Callable] = None
     scheduler_kwargs: Dict[str, Any] = field(default_factory=dict)
+    early_stopper_cls: Optional[Callable] = None
+    early_stopper_kwargs: Dict[str, Any] = field(default_factory=dict)
 
     random_state: int = 42
     threads: int = 1
 
-
     def to_simple_dict(self) -> Dict[str, Any]:
-        """Return a dictionary representation of the config with complex objects simplified to readable names."""
+        """Return a dictionary of config values with non-basic types simplified to readable strings."""
         SIMPLE_TYPES = (int, float, str, bool, type(None), Path)
 
         def simplify(value):
