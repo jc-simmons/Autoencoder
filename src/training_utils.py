@@ -10,31 +10,19 @@ def set_random_state(seed=None):
     random.seed(seed)
 
 
-class EarlyStopping:
+class StoppingPatience:
     "Provides a Counter for halting training when no sufficient improvement is observed over patience period"
-    def __init__(self, patience: int = 5, delta: float = 1e-5, minimize: bool = True):
+    def __init__(self, patience = 5):
         self.patience = patience
-        self.delta = delta
-        self.minimize = minimize
-        self.best_score = None
         self.counter = 0
-        self.early_stop = False
 
-    def __call__(self, current_score: float) -> None:
-        if self.best_score is None:
-            self.best_score = current_score
-            return
+    def check_stop(self, improved) :
+        self.counter = 0 if improved else self.counter + 1
+        return self.counter >= self.patience
+    
 
-        improvement = (
-            self.best_score - current_score
-            if self.minimize else
-            current_score - self.best_score
-        )
+def check_improvement(best_score, current_score, delta = 1e-5, minimize = True):
+    improvement = best_score - current_score if minimize else current_score - best_score
+    return improvement > delta
 
-        if improvement > self.delta:
-            self.best_score = current_score
-            self.counter = 0
-        else:
-            self.counter += 1
-            if self.counter >= self.patience:
-                self.early_stop = True
+    

@@ -65,15 +65,16 @@ class ConsoleLogger(BaseLogger):
 
 class SaveLogger(BaseLogger):
     """Logger for saving parameters, metrics, and artifacts during an experiment."""
-    def __init__(self, log_dir, experiment_name=None):
+    def __init__(self, log_dir, experiment_name=None, model_save_fn=None):
         self.log_dir = Path(log_dir)
         self.experiment_name = experiment_name or generate_timestamp()
         self.log_path = self.log_dir / self.experiment_name
         self.log_path.mkdir(parents=True, exist_ok=True)
+        self.model_save_fn = model_save_fn
 
-    def _log_param(self, param):
+    def _log_param(self, param, filename='params.json'):
         """Logs static parameters to a JSON file."""
-        file_path = self.log_path / 'params.json'
+        file_path = self.log_path / filename
         try:
             with open(file_path, 'r') as file:
                 data = json.load(file)
@@ -85,9 +86,9 @@ class SaveLogger(BaseLogger):
         with open(file_path, 'w') as file:
             json.dump(data, file, indent=4)
 
-    def _log_metrics(self, metrics):
+    def _log_metrics(self, metrics, filename='metrics.jsonl'):
         """Logs metrics by appending to a JSONL file."""
-        with open(self.log_path / 'metrics.jsonl', 'a') as f:
+        with open(self.log_path / filename, 'a') as f:
             f.write(json.dumps(metrics)+ "\n")
 
     def _log_artifact(self, name, artifact):
@@ -96,6 +97,22 @@ class SaveLogger(BaseLogger):
         #plt.savefig(self.log_path / f"{name}.png")
         artifact.savefig(self.log_path / f"{name}.png")
         plt.close(artifact)
+
+    def log_model(self, model, filename=None):
+        """Saves a model object given a defined model-save callable."""
+        if filename is None:
+            filename = "model.pt"
+        file_path = self.log_path / filename
+        self.model_save_fn(model, file_path)
+
+    def log_info(self, filename, content, append= False):
+        """Writes simple content to a dat file."""
+        file_path = self.log_path / f"{filename}.dat"
+        mode = 'a' if append else 'w'
+        with open(file_path, mode) as f:
+            f.write(f"{content}\n")
+
+        
 
 
 def generate_timestamp() -> str:

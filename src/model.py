@@ -13,7 +13,7 @@ def default_up_layer(in_ch, out_ch):
 
 
 class CAE(nn.Module):
-    """Convolutional Autoencoder with customizable encoder/decoder layer generators."""
+    """Convolutional Autoencoder architecture with customizable encoder/decoder layer generators and variable depth."""
     def __init__(self, in_channels=3, 
                  out_channels=3, 
                  latent_channels=None, 

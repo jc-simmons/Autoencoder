@@ -31,7 +31,7 @@ class Config:
 
     def to_simple_dict(self) -> Dict[str, Any]:
         """Return a dictionary of config values with non-basic types simplified to readable strings."""
-        SIMPLE_TYPES = (int, float, str, bool, type(None), Path)
+        SIMPLE_TYPES = (int, float, str, bool, type(None))
 
         def simplify(value):
             if isinstance(value, SIMPLE_TYPES):
@@ -42,7 +42,7 @@ class Config:
                 return {k: simplify(v) for k, v in value.items()}
             if isinstance(value, list):
                 return [simplify(v) for v in value]
-            return type(value).__name__
+            return str(value)
     
         object_dict = asdict(self)
         return {k: simplify(v) for k, v in object_dict.items()}
