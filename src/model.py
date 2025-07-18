@@ -48,9 +48,13 @@ class CAE(nn.Module):
         self.decoder.append(nn.Conv2d(hidden_channels[0], out_channels, kernel_size=3, stride=1, padding=1))
         self.decoder.append(nn.Sigmoid())
 
-    def forward(self, x):
+    def forward(self, x, return_latent=False):
         for layer in self.encoder:
             x = layer(x)
+
+        if return_latent:
+            return x
+
         for layer in self.decoder:
             x = layer(x)
         return x
