@@ -1,5 +1,4 @@
 import torch.nn as nn
-import matplotlib.pyplot as plt
 import lpips
 import torch
 from torchmetrics.functional.image.ssim import structural_similarity_index_measure as ssim
@@ -17,7 +16,7 @@ def create_evaluator(metric_names):
     """Creates a callable evaluator that computes selected metrics for a model's predictions."""
     def evaluate(model, input, target) -> dict:
         results = {}
-        prediction = model(input)
+        prediction = model(input) if model is not None else input
         # potential arguments needed by evaluation methods
         eval_args = {
             "model": model,
@@ -84,28 +83,3 @@ def kld_fn(model, input, **kwargs):
     kld = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=[1, 2, 3])
 
     return kld.mean()
-
-@register_eval("plot_model_reconstruction")
-def plot_model_reconstruction(prediction, input, **kwargs):
-    """ Return a matplotlib Figure comparing input image and reconstruction."""
-    input = input.cpu().detach().numpy().squeeze(0)
-    prediction = prediction.cpu().detach().numpy().squeeze(0)
-    print(input.shape, prediction.shape)
-   
-    if input.ndim == 3 and input.shape[0] == 3:  
-        input = input.transpose(1, 2, 0)  
-    if prediction.ndim == 3 and prediction.shape[0] == 3:
-        prediction = prediction.transpose(1, 2, 0)
-        
-    fig, axs = plt.subplots(1, 2, figsize=(2, 1))     
-
-    axs[0].imshow(input)
-    axs[0].set_title("Input Image")
-    axs[0].axis("off")
-
-    axs[1].imshow(prediction)
-    axs[1].set_title("Reconstruction")
-    axs[1].axis("off")
-
-    plt.tight_layout()
-    return fig
