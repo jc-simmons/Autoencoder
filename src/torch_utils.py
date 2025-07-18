@@ -59,3 +59,11 @@ def create_runner(model, evaluator, optimizer, device='cpu', loss=None):
 def save_torch_model(model, file_name):
     """Saves a PyTorch model's state dict to file."""
     torch.save(model.state_dict(), file_name)
+
+
+def load_torch_model(model, file_name, device='cpu'):
+    """Loads a PyTorch model from a state dict."""
+    state_dict = torch.load(file_name, map_location=device)
+    model.load_state_dict(state_dict)
+    model.to(device)
+    return model
