@@ -75,9 +75,10 @@ def main(cfg: Config):
 if __name__ == "__main__":
 
     cfg = Config(
-        batch_size = 8,
-        epochs = 100,
-        samples = 1000,
+
+        batch_size = 16,
+        epochs = 70,
+        samples = 50000,
         loss = 'MSE',
         metrics = ['MSE', 'PSNR', 'SSIM'],
 
@@ -85,20 +86,24 @@ if __name__ == "__main__":
         model_kwargs={"latent_channels": 12, "hidden_channels": [64, 128]},
 
         optimizer_cls=torch.optim.Adam,
-        optimizer_kwargs={"lr": 1e-3, "weight_decay": 5e-4},
+        optimizer_kwargs={"lr": 1e-3},
 
         scheduler_cls=torch.optim.lr_scheduler.ExponentialLR,
         scheduler_kwargs={"gamma": 0.999},
 
         logger_cls=cl.SaveLogger,
-        logger_kwargs={'log_dir' : Path('output/test'), 
-                       'model_save_fn': save_torch_model},
+        logger_kwargs={'log_dir' : Path('output'), 
+                    'experiment_name' : 'test',
+                        'model_save_fn': save_torch_model},
 
         dataset_factory= create_datasets,
         dataset_kwargs= {"data_path": Path('data/CIFAR10/')},
 
         early_stopper_cls=train_utils.StoppingPatience,
-        early_stopper_kwargs= {'patience': 15}
+        early_stopper_kwargs= {'patience': 15},
+
+        threads=1
+
     )
 
     main(cfg)
